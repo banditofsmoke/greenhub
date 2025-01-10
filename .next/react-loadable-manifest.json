@@ -1,0 +1,14 @@
+{
+  "app\\components\\UserProgress.tsx -> recharts": {
+    "id": "app\\components\\UserProgress.tsx -> recharts",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_recharts_es6_index_js.js"
+    ]
+  },
+  "app\\directory\\page.tsx -> react-leaflet": {
+    "id": "app\\directory\\page.tsx -> react-leaflet",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_react-leaflet_lib_index_js.js"
+    ]
+  }
+}

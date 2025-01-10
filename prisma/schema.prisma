@@ -1,0 +1,58 @@
+model User {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  name           String?
+  email          String        @unique
+  emailVerified  DateTime?
+  hashedPassword String
+  image          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  accounts       Account[]
+  messages       Message[]
+  badges         Badge[]
+  achievements   Achievement[]
+  gallery        Gallery[]
+  preferences    Preference?
+}
+
+model Badge {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  icon        String
+  description String
+  category    String
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  dateEarned  DateTime
+  icon        String
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Gallery {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  category    String
+  image       String
+  title       String
+  description String
+  isPrivate   Boolean  @default(false)
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Preference {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  favoriteStrains String[]
+  preferredMethods String[]
+  growExperience  String
+  cookingInterest Boolean
+  privacyLevel    String
+  userId          String   @unique @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

@@ -23,9 +23,9 @@ export default function SignUpForm() {
           name: formData.get('name'),
           password: formData.get('password'),
         }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
       })
 
       if (!response.ok) {

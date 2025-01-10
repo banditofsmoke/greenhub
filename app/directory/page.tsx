@@ -109,18 +109,18 @@ export default function Directory() {
   const allTags = Array.from(new Set(businesses.flatMap(business => business.tags)))
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight
-      filteredBusinesses.forEach(business => {
-        const element = document.getElementById(`business-${business.id}`)
-        if (element && scrollPosition > element.offsetTop + 100) {
-          setActiveBusinessId(business.id)
-        }
-      })
-    }
+    // const handleScroll = () => {
+    //   const scrollPosition = window.scrollY + window.innerHeight
+    //   filteredBusinesses.forEach(business => {
+    //     const element = document.getElementById(`business-${business.id}`)
+    //     if (element && scrollPosition > element.offsetTop + 100) {
+    //       setActiveBusinessId(business.id)
+    //     }
+    //   })
+    // }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    // window.addEventListener('scroll', handleScroll)
+    // return () => window.removeEventListener('scroll', handleScroll)
   }, [filteredBusinesses])
 
   return (
@@ -166,7 +166,7 @@ export default function Directory() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <Map center={portElizabethCoords} zoom={12} style={{ height: '400px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden' }}>
+        {/* <Map center={portElizabethCoords} zoom={12} style={{ height: '400px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden' }}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -176,7 +176,7 @@ export default function Directory() {
               <Popup>{business.name}</Popup>
             </Marker>
           ))}
-        </Map>
+        </Map> */}
       </motion.div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredBusinesses.map((business, index) => (

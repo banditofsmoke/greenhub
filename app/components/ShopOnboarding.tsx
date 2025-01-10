@@ -26,9 +26,9 @@ export default function ShopOnboarding() {
     try {
       const response = await fetch('/api/shopSubmissions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
         body: JSON.stringify(formData),
       })
       if (response.ok) {

@@ -19,9 +19,9 @@ export default function AdminPage() {
     try {
       const response = await fetch('/api/shopSubmissions', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
         body: JSON.stringify({ id, status }),
       })
       if (response.ok) {

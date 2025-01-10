@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Edit, Leaf, Sun, Moon, Coffee, Music, Camera, Book, Seedling, Fire, Cookie } from 'lucide-react'
+import { User, Edit, Leaf, Sun, Moon, Coffee, Music, Camera, Book, Sprout, Flame, Cookie } from 'lucide-react'
 import UserProgress from '@/app/components/UserProgress'
 import ToleranceBreak from '@/app/components/ToleranceBreak'
 import HealthyLiving from '@/app/components/HealthyLiving'
@@ -27,7 +27,7 @@ const moods = [
   { name: 'Creative', icon: Music },
   { name: 'Productive', icon: Coffee },
   { name: 'Learning', icon: Book },
-  { name: 'Growing', icon: Seedling },
+  { name: 'Growing', icon: Sprout },
   { name: 'Cooking', icon: Cookie },
 ]
 

@@ -20,6 +20,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  console.warn(process.env)
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

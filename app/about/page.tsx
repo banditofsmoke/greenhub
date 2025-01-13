@@ -11,7 +11,7 @@ export default function About() {
         <li>Do not share or promote illegal activities</li>
         <li>Keep discussions civil and constructive</li>
         <li>Do not spam or post excessive self-promotion</li>
-        <li>Report any content that violates our guidelines</li>
+        <li>Report any content that violates our guidelines.</li>
       </ul>
       <h2 className="text-2xl font-semibold mb-4">Privacy Commitment</h2>
       <p className="mb-4">

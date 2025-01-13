@@ -10,11 +10,12 @@ const nextConfig = {
     unoptimized: false,
     domains: [], // We'll add domains as needed
   },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
+  // Temporarily disable experimental features to test
+  // experimental: {
+  //   webpackBuildWorker: true,
+  //   parallelServerBuildTraces: true,
+  //   parallelServerCompiles: true,
+  // },
   async headers() {
     return [
       {

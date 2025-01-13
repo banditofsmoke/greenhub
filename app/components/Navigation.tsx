@@ -1,11 +1,27 @@
+// Navigation.tsx
 'use client'
-
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, X, Sun, Moon, User, Users, MessageSquare, Home, Search, Hash, Scale, Info, LogOut, LogIn, UserPlus } from 'lucide-react'
-import { useState } from 'react'
-import { useTheme } from 'next-themes'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from 'next-themes'
+import { useState } from 'react'
+import {
+  Menu,
+  X,
+  Sun,
+  Moon,
+  User,
+  Users,
+  MessageSquare,
+  Home,
+  Search,
+  Hash,
+  Scale,
+  Info,
+  LogOut,
+  LogIn,
+  UserPlus,
+} from '../components/providers'
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)

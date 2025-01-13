@@ -1,7 +1,12 @@
+// HealthyLiving.tsx
 'use client'
-
 import { useState } from 'react'
-import { Heart, Brain, Zap, Coffee } from 'lucide-react'
+import {
+  Heart,
+  Brain,
+  Zap,
+  Coffee,
+} from '../components/providers'
 
 type HealthTip = {
   icon: React.ElementType

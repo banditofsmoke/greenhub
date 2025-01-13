@@ -1,7 +1,11 @@
+// LegalSidebar.tsx
 'use client'
-
 import { useState } from 'react'
-import { AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react'
+import {
+  AlertTriangle,
+  ChevronRight,
+  ChevronLeft,
+} from '../components/providers'
 
 const LegalSidebar = () => {
   const [isOpen, setIsOpen] = useState(true)

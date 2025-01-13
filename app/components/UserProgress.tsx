@@ -1,38 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Star, MessageSquare, Leaf, Award, ShoppingBag } from 'lucide-react'
-import dynamic from 'next/dynamic'
-
-// Dynamically import Recharts components with no SSR
-const LineChart = dynamic(
-  () => import('recharts').then((mod) => mod.LineChart),
-  { ssr: false }
-)
-// const Line = dynamic(
-//   () => import('recharts').then((mod) => mod.Line),
-//   { ssr: false }
-// )
-// const XAxis = dynamic(
-//   () => import('recharts').then((mod) => mod.XAxis),
-//   { ssr: false }
-// )
-// const YAxis = dynamic(
-//   () => import('recharts').then((mod) => mod.YAxis),
-//   { ssr: false }
-// )
-// const CartesianGrid = dynamic(
-//   () => import('recharts').then((mod) => mod.CartesianGrid),
-//   { ssr: false }
-// )
-// const Tooltip = dynamic(
-//   () => import('recharts').then((mod) => mod.Tooltip),
-//   { ssr: false }
-// )
-const ResponsiveContainer = dynamic(
-  () => import('recharts').then((mod) => mod.ResponsiveContainer),
-  { ssr: false }
-)
+import { Star, MessageSquare, Leaf, ShoppingBag } from 'lucide-react'
 
 type UserStats = {
   posts: number
@@ -74,7 +43,7 @@ export default function UserProgress() {
   const nextLevelXP = 100 // Set a fixed XP requirement for the next level
 
   if (!mounted) {
-    return null
+    return <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">Loading...</div>
   }
 
   return (

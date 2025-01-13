@@ -13,7 +13,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
     "@hookform/resolvers": "^3.9.1",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "5.9.1",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
@@ -51,7 +51,7 @@
     "framer-motion": "^10.16.16",
     "input-otp": "1.4.1",
     "leaflet": "^1.9.4",
-    "lucide-react": "^0.454.0",
+    "lucide-react": "^0.471.1",
     "mongodb": "^6.12.0",
     "next": "14.2.16",
     "next-auth": "^4.24.11",
@@ -75,7 +75,7 @@
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "postcss": "^8.4.32",
-    "prisma": "^6.2.1",
+    "prisma": "5.9.1",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3"
   }

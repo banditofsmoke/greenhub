@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Edit, Leaf, Sun, Moon, Coffee, Music, Camera, Book, Sprout, Flame, Cookie } from 'lucide-react'
 import UserProgress from '@/app/components/UserProgress'
 import ToleranceBreak from '@/app/components/ToleranceBreak'
 import HealthyLiving from '@/app/components/HealthyLiving'
@@ -21,14 +20,15 @@ const themes = [
   { name: 'Green Dream', class: 'bg-green-100 dark:bg-green-900' },
 ]
 
+// Replaced icon imports with simple strings for now
 const moods = [
-  { name: 'Chill', icon: Sun },
-  { name: 'Sleepy', icon: Moon },
-  { name: 'Creative', icon: Music },
-  { name: 'Productive', icon: Coffee },
-  { name: 'Learning', icon: Book },
-  { name: 'Growing', icon: Sprout },
-  { name: 'Cooking', icon: Cookie },
+  { name: 'Chill', icon: '☀️' },
+  { name: 'Sleepy', icon: '🌙' },
+  { name: 'Creative', icon: '🎵' },
+  { name: 'Productive', icon: '☕' },
+  { name: 'Learning', icon: '📚' },
+  { name: 'Growing', icon: '🌱' },
+  { name: 'Cooking', icon: '🍪' },
 ]
 
 const achievements: UserAchievement[] = [
@@ -58,7 +58,7 @@ export default function Profile() {
     theme: themes[0],
     mood: moods[0],
     stonerScore: 420,
-    badges: [consumptionBadges[0], consumptionBadges[2]], // User's selected badges
+    badges: [consumptionBadges[0], consumptionBadges[2]],
     achievements: achievements,
     preferences: {
       favoriteStrains: ['Blue Dream', 'Northern Lights', 'Girl Scout Cookies'],
@@ -82,7 +82,6 @@ export default function Profile() {
       ...prev,
       badges: selectedBadges
     }))
-    // Here you would typically save the profile to your backend
     console.log('Saving profile:', profile)
   }
 
@@ -91,28 +90,6 @@ export default function Profile() {
       setSelectedBadges(prev => prev.filter(b => b.id !== badge.id))
     } else if (selectedBadges.length < 3) {
       setSelectedBadges(prev => [...prev, badge])
-    }
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // In a real app, you'd upload to your storage service
-      const imageUrl = URL.createObjectURL(file)
-      setProfile(prev => ({
-        ...prev,
-        gallery: [
-          ...prev.gallery,
-          {
-            id: Date.now().toString(),
-            category: 'general',
-            image: imageUrl,
-            title: 'New Upload',
-            description: '',
-            isPrivate: false
-          }
-        ]
-      }))
     }
   }
 
@@ -256,8 +233,8 @@ export default function Profile() {
 
         {/* Additional Components */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <UserProgress />
           <ToleranceBreak />
+          <UserProgress />
           <div className="lg:col-span-2">
             <HealthyLiving />
           </div>

@@ -1,9 +1,9 @@
-'use client'
-
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Home, Search, Users, User, MessageSquare } from 'lucide-react'
-import Link from 'next/link'
+// For FloatingActionButton.tsx
+'use client';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Home, Search, Users, User, MessageSquare } from '../components/providers';
+import Link from 'next/link';
 
 const menuItems = [
   { icon: Home, label: 'Home', href: '/' },

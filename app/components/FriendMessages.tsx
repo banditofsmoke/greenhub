@@ -1,7 +1,7 @@
-'use client'
-
-import { useState, useEffect, useRef } from 'react'
-import { Send, ChevronRight, ChevronLeft } from 'lucide-react'
+// For FriendMessages.tsx
+'use client';
+import { useState, useEffect, useRef } from 'react';
+import { Send, ChevronRight, ChevronLeft } from '../components/providers';
 
 type Message = {
   id: number

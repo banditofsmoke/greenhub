@@ -1,7 +1,12 @@
+// RealTimeStats.tsx
 'use client'
-
 import { useState, useEffect } from 'react'
-import { Users, Building, Group, ShoppingBag } from 'lucide-react'
+import {
+  Users,
+  Building,
+  Group,
+  ShoppingBag,
+} from '../components/providers'
 
 const RealTimeStats = () => {
   const [stats, setStats] = useState({

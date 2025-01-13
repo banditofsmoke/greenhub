@@ -1,8 +1,8 @@
 {
-  "/sign-in/page": "app/sign-in/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/sign-up/page": "app/sign-up/page.js",
-  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/profile/page": "app/profile/page.js",
   "/page": "app/page.js",
-  "/directory/page": "app/directory/page.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/directory/page": "app/directory/page.js",
+  "/community/page": "app/community/page.js",
+  "/about/page": "app/about/page.js"
 }

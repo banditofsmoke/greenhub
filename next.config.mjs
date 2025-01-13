@@ -10,6 +10,17 @@ const nextConfig = {
     unoptimized: false,
     domains: [], // We'll add domains as needed
   },
+  env:
+  {
+    env: {  
+      NEXT_PUBLIC_SEB: process.env.NEXT_PUBLIC_SEB, 
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL, 
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+      DATABASE_URL: process.env.DATABASE_URL,
+
+    }
+    
+  },
   // Temporarily disable experimental features to test
   // experimental: {
   //   webpackBuildWorker: true,

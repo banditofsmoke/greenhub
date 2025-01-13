@@ -1,3 +1,4 @@
+'use client';
 import SignInForm from '../components/auth/SignInForm'
 import React, { useEffect, useState } from 'react';
 

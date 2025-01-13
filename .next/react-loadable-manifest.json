@@ -1,15 +1,14 @@
 {
   "app\\components\\UserProgress.tsx -> recharts": {
-    "id": 91729,
+    "id": "app\\components\\UserProgress.tsx -> recharts",
     "files": [
-      "static/chunks/729.8099ab42d150df0d.js"
+      "static/chunks/_app-pages-browser_node_modules_recharts_es6_index_js.js"
     ]
   },
   "app\\directory\\page.tsx -> react-leaflet": {
-    "id": 29305,
+    "id": "app\\directory\\page.tsx -> react-leaflet",
     "files": [
-      "static/chunks/d0deef33.414f5e0355024f0b.js",
-      "static/chunks/305.b169bd56f433e87c.js"
+      "static/chunks/_app-pages-browser_node_modules_react-leaflet_lib_index_js.js"
     ]
   }
 }

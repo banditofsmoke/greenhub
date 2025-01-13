@@ -1,4 +1,4 @@
-// File: C:\repos\sledge\Sletcher Systems\Products\Green-hub\cannabis-community-hub\app\api\auth\register\route.ts
+// File: F:\Sletcher Systems\greenhub\greenhub\app\api\auth\register\route.ts
 import * as entry from '../../../../../../app/api/auth/register/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -1,4 +1,4 @@
-// File: C:\repos\sledge\Sletcher Systems\Products\Green-hub\cannabis-community-hub\app\directory\page.tsx
+// File: F:\Sletcher Systems\greenhub\greenhub\app\directory\page.tsx
 import * as entry from '../../../../app/directory/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

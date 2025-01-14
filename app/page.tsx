@@ -1,281 +1,91 @@
 'use client'
 
-import { useState } from 'react'
-import { 
-  User, 
-  Edit, 
-  Leaf, 
-  Sun, 
-  Moon, 
-  Coffee, 
-  Music, 
-  Camera, 
-  Book, 
-  Sprout, 
-  Flame, 
-  Cookie 
-} from 'lucide-react'
-import UserProgress from './components/UserProgress'
-import ToleranceBreak from './components/ToleranceBreak'
-import HealthyLiving from './components/HealthyLiving'
-import type { StonerBadge, UserAchievement, UserGallery, UserPreference } from './types/profile'
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 
-const consumptionBadges: StonerBadge[] = [
-  { id: '1', name: 'Bong Master', icon: '🌊', description: 'Prefers water filtration', category: 'consumption' },
-  { id: '2', name: 'Joint Artist', icon: '🎨', description: 'Rolling expertise', category: 'consumption' },
-  { id: '3', name: 'Dab King', icon: '💎', description: 'Concentrate connoisseur', category: 'consumption' },
-  { id: '4', name: 'Edibles Chef', icon: '👨‍🍳', description: 'Culinary cannabis expert', category: 'culinary' },
-]
+export default function Home() {
+  const [onlineUsers, setOnlineUsers] = useState(1);
 
-const themes = [
-  { name: 'Default', class: 'bg-white dark:bg-gray-900' },
-  { name: 'Haze Purple', class: 'bg-purple-100 dark:bg-purple-900' },
-  { name: 'Mellow Yellow', class: 'bg-yellow-100 dark:bg-yellow-900' },
-  { name: 'Green Dream', class: 'bg-green-100 dark:bg-green-900' },
-]
+  // Only randomize online users count
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlineUsers(Math.floor(Math.random() * 10) + 1); // 1-10 users
+    }, 3000);
 
-const moods = [
-  { name: 'Chill', icon: Sun },
-  { name: 'Sleepy', icon: Moon },
-  { name: 'Creative', icon: Music },
-  { name: 'Productive', icon: Coffee },
-  { name: 'Learning', icon: Book },
-  { name: 'Growing', icon: Sprout },
-  { name: 'Cooking', icon: Cookie },
-]
-
-const achievements: UserAchievement[] = [
-  {
-    id: '1',
-    name: 'Growth Master',
-    description: 'Successfully completed first grow',
-    dateEarned: new Date('2024-01-01'),
-    icon: '🌱'
-  },
-  {
-    id: '2',
-    name: 'Recipe Creator',
-    description: 'Shared 10 original recipes',
-    dateEarned: new Date('2024-01-05'),
-    icon: '🍪'
-  }
-]
-
-export default function Profile() {
-  const [editing, setEditing] = useState(false)
-  const [profile, setProfile] = useState({
-    name: 'CannabisEnthusiast420',
-    avatar: '/placeholder.svg',
-    bio: 'Just a chill person enjoying life and nature.',
-    favoriteStrain: 'Blue Dream',
-    theme: themes[0],
-    mood: moods[0],
-    stonerScore: 420,
-    badges: [consumptionBadges[0], consumptionBadges[2]], // User's selected badges
-    achievements: achievements,
-    preferences: {
-      favoriteStrains: ['Blue Dream', 'Northern Lights', 'Girl Scout Cookies'],
-      preferredMethods: ['bong', 'joint'],
-      growExperience: 'intermediate' as const,
-      cookingInterest: true,
-      privacyLevel: 'public' as const
-    } as UserPreference,
-    gallery: [] as UserGallery[]
-  })
-  const [selectedBadges, setSelectedBadges] = useState<StonerBadge[]>(profile.badges)
-  const [tempMood, setTempMood] = useState<typeof moods[0] | null>(null)
-
-  const handleEdit = () => {
-    setEditing(!editing)
-  }
-
-  const handleSave = () => {
-    setEditing(false)
-    setProfile(prev => ({
-      ...prev,
-      badges: selectedBadges
-    }))
-    // Here you would typically save the profile to your backend
-    console.log('Saving profile:', profile)
-  }
-
-  const handleBadgeToggle = (badge: StonerBadge) => {
-    if (selectedBadges.find(b => b.id === badge.id)) {
-      setSelectedBadges(prev => prev.filter(b => b.id !== badge.id))
-    } else if (selectedBadges.length < 3) {
-      setSelectedBadges(prev => [...prev, badge])
-    }
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // In a real app, you'd upload to your storage service
-      const imageUrl = URL.createObjectURL(file)
-      setProfile(prev => ({
-        ...prev,
-        gallery: [
-          ...prev.gallery,
-          {
-            id: Date.now().toString(),
-            category: 'general',
-            image: imageUrl,
-            title: 'New Upload',
-            description: '',
-            isPrivate: false
-          }
-        ]
-      }))
-    }
-  }
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className={`min-h-screen p-8 ${profile.theme.class}`}>
+    <div className="min-h-screen bg-[#0f1218] dark:bg-[#0f1218] p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Your Profile</h1>
-            <button onClick={handleEdit} className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600">
-              {editing ? 'Cancel' : 'Edit Profile'}
-            </button>
-          </div>
-
-          {/* Badges Section */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">Your Badges</h3>
-            <div className="flex flex-wrap gap-2">
-              {editing ? (
-                consumptionBadges.map(badge => (
-                  <button
-                    key={badge.id}
-                    onClick={() => handleBadgeToggle(badge)}
-                    className={`p-2 rounded-lg flex items-center ${
-                      selectedBadges.find(b => b.id === badge.id)
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span className="mr-2">{badge.icon}</span>
-                    {badge.name}
-                  </button>
-                ))
-              ) : (
-                profile.badges.map(badge => (
-                  <div key={badge.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center">
-                    <span className="mr-2">{badge.icon}</span>
-                    {badge.name}
-                  </div>
-                ))
-              )}
+        {/* Stats Widget */}
+        <Card className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-4 mb-6 rounded-lg border-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-2">
+              <div className="text-sm text-gray-400 mb-1">Online Now</div>
+              <div className="text-2xl font-bold text-[#22c55e]">{onlineUsers}</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-sm text-gray-400 mb-1">Total Posts</div>
+              <div className="text-2xl font-bold text-[#22c55e]">0</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-sm text-gray-400 mb-1">Members</div>
+              <div className="text-2xl font-bold text-[#22c55e]">7</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-sm text-gray-400 mb-1">Dispensaries</div>
+              <div className="text-2xl font-bold text-[#22c55e]">4</div>
             </div>
           </div>
+        </Card>
 
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-8 rounded-lg border-0">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-[#22c55e] mb-4">Welcome to Green Hub</h1>
+            <p className="text-gray-300 mb-4">
+              A new professional platform designed exclusively for South African cannabis enthusiasts, 
+              dispensaries, and community clubs. Supporting your constitutional right while building a 
+              safe, informed, and engaging space for our local cannabis community.
+            </p>
+            <p className="text-gray-300">
+              Note: This platform is strictly for users 18 years and older.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
-              <h3 className="font-semibold mb-2">Basic Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Display Name</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      name="name"
-                      value={profile.name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full p-2 border rounded dark:bg-gray-700"
-                    />
-                  ) : (
-                    <p>{profile.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Bio</label>
-                  {editing ? (
-                    <textarea
-                      name="bio"
-                      value={profile.bio}
-                      onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
-                      className="w-full p-2 border rounded dark:bg-gray-700"
-                      rows={3}
-                    />
-                  ) : (
-                    <p>{profile.bio}</p>
-                  )}
-                </div>
-              </div>
+              <h2 className="text-xl font-semibold text-[#22c55e] mb-3">Community Features</h2>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Track your cannabis journey</li>
+                <li>• Connect with local enthusiasts</li>
+                <li>• Earn achievement badges</li>
+                <li>• Share experiences safely</li>
+              </ul>
             </div>
 
-            {/* Preferences */}
             <div>
-              <h3 className="font-semibold mb-2">Preferences</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Favorite Strains</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={profile.preferences.favoriteStrains.join(', ')}
-                      onChange={(e) => setProfile(prev => ({
-                        ...prev,
-                        preferences: {
-                          ...prev.preferences,
-                          favoriteStrains: e.target.value.split(',').map(s => s.trim())
-                        }
-                      }))}
-                      className="w-full p-2 border rounded dark:bg-gray-700"
-                    />
-                  ) : (
-                    <p>{profile.preferences.favoriteStrains.join(', ')}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Growing Experience</label>
-                  {editing ? (
-                    <select
-                      value={profile.preferences.growExperience}
-                      onChange={(e) => setProfile(prev => ({
-                        ...prev,
-                        preferences: {
-                          ...prev.preferences,
-                          growExperience: e.target.value as UserPreference['growExperience']
-                        }
-                      }))}
-                      className="w-full p-2 border rounded dark:bg-gray-700"
-                    >
-                      <option value="none">None</option>
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="expert">Expert</option>
-                    </select>
-                  ) : (
-                    <p className="capitalize">{profile.preferences.growExperience}</p>
-                  )}
-                </div>
-              </div>
+              <h2 className="text-xl font-semibold text-[#22c55e] mb-3">Dispensary Directory</h2>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Find local dispensaries</li>
+                <li>• Join cannabis communities</li>
+                <li>• Browse available products</li>
+                <li>• Port Elizabeth area and expanding</li>
+              </ul>
             </div>
           </div>
 
-          {/* Save Button */}
-          {editing && (
-            <button
-              onClick={handleSave}
-              className="mt-6 bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors"
-            >
-              Save Changes
-            </button>
-          )}
-        </div>
-
-        {/* Additional Components */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <UserProgress />
-          <ToleranceBreak />
-          <div className="lg:col-span-2">
-            <HealthyLiving />
-          </div>
-        </div>
+          <Card className="bg-[#141821] dark:bg-[#141821] p-6 rounded-lg border-0">
+            <h2 className="text-xl font-semibold text-[#22c55e] mb-3">Join Our Community</h2>
+            <p className="text-gray-300">
+              Be part of South Africa's growing cannabis community. We're creating a safer, more informed space 
+              for enthusiasts and dispensaries to connect. Join us in building a responsible, 
+              privacy-focused platform that respects your constitutional rights while fostering a 
+              knowledgeable cannabis culture.
+            </p>
+          </Card>
+        </Card>
       </div>
     </div>
-  )
+  );
 }

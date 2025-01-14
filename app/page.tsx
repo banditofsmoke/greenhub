@@ -1,12 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 
 export default function Home() {
   const [onlineUsers, setOnlineUsers] = useState(1);
 
-  // Only randomize online users count
   useEffect(() => {
     const interval = setInterval(() => {
       setOnlineUsers(Math.floor(Math.random() * 10) + 1); // 1-10 users
@@ -19,7 +17,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#0f1218] dark:bg-[#0f1218] p-8">
       <div className="max-w-6xl mx-auto">
         {/* Stats Widget */}
-        <Card className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-4 mb-6 rounded-lg border-0">
+        <div className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-4 mb-6 rounded-lg">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-2">
               <div className="text-sm text-gray-400 mb-1">Online Now</div>
@@ -38,9 +36,9 @@ export default function Home() {
               <div className="text-2xl font-bold text-[#22c55e]">4</div>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-8 rounded-lg border-0">
+        <div className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-8 rounded-lg">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-[#22c55e] mb-4">Welcome to Green Hub</h1>
             <p className="text-gray-300 mb-4">
@@ -75,7 +73,7 @@ export default function Home() {
             </div>
           </div>
 
-          <Card className="bg-[#141821] dark:bg-[#141821] p-6 rounded-lg border-0">
+          <div className="bg-[#141821] dark:bg-[#141821] p-6 rounded-lg">
             <h2 className="text-xl font-semibold text-[#22c55e] mb-3">Join Our Community</h2>
             <p className="text-gray-300">
               Be part of South Africa's growing cannabis community. We're creating a safer, more informed space 
@@ -83,8 +81,8 @@ export default function Home() {
               privacy-focused platform that respects your constitutional rights while fostering a 
               knowledgeable cannabis culture.
             </p>
-          </Card>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

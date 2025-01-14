@@ -7,7 +7,7 @@ export default function Home() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setOnlineUsers(Math.floor(Math.random() * 10) + 1); // 1-10 users
+      setOnlineUsers(Math.floor(Math.random() * 10) + 1);
     }, 3000);
 
     return () => clearInterval(interval);
@@ -38,7 +38,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-8 rounded-lg">
+        <div className="bg-[#1a1f2b] dark:bg-[#1a1f2b] shadow-xl p-8 rounded-lg mb-6">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-[#22c55e] mb-4">Welcome to Green Hub</h1>
             <p className="text-gray-300 mb-4">
@@ -82,6 +82,11 @@ export default function Home() {
               knowledgeable cannabis culture.
             </p>
           </div>
+        </div>
+
+        {/* Slogan */}
+        <div className="text-center italic text-gray-500 p-4">
+          <p className="text-lg">"When times get low, we get high!"</p>
         </div>
       </div>
     </div>

@@ -1,52 +1,52 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useToast } from "@/components/ui/use-toast"
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '../../../hooks/use-toast'; // Correct path
 
-export default function SignInForm() {  // Changed function name
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+export default function SignInForm() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsLoading(true)
+    event.preventDefault();
+    setIsLoading(true);
 
-    const formData = new FormData(event.currentTarget)
-    
+    const formData = new FormData(event.currentTarget);
+
     try {
       const response = await signIn('credentials', {
         email: formData.get('email') as string,
         password: formData.get('password') as string,
         redirect: false,
-      })
+      });
 
       if (response?.error) {
         toast({
-          title: "Error",
-          description: "Invalid credentials",
-          variant: "destructive",
-        })
-        return
+          title: 'Error',
+          description: 'Invalid credentials',
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
-        title: "Success",
-        description: "Logged in successfully",
-      })
-      
-      router.push('/')
-      router.refresh()
+        title: 'Success',
+        description: 'Logged in successfully',
+      });
+
+      router.push('/');
+      router.refresh();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Something went wrong",
-        variant: "destructive",
-      })
+        title: 'Error',
+        description: 'Something went wrong',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -92,5 +92,5 @@ export default function SignInForm() {  // Changed function name
         </button>
       </form>
     </div>
-  )
+  );
 }

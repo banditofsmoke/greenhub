@@ -13,6 +13,10 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata = {
   title: 'Green Hub',
   description: 'A professional and privacy-focused community for cannabis enthusiasts and businesses',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -20,15 +24,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  console.warn(process.env)
+  // Remove console.warn(process.env) as it's not safe to expose environment variables
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        <link 
+          rel="stylesheet" 
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossOrigin=""/>
+          crossOrigin=""
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="theme-color" content="#000000" />
       </head>
-      <body className={`${inter.className} text-foreground bg-background`}>
+      <body className={`${inter.className} text-foreground bg-background antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AuthProvider>
             <ToastProvider>

@@ -7,7 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 model User {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String?
@@ -15,16 +14,28 @@ model User {
   emailVerified  DateTime?
   hashedPassword String
   image          String?
+  bio            String?       // Added bio field
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  lastSeen       DateTime?     // Added for online status
+  
+  // User relationships
   accounts       Account[]
-  messages       Message[]
+  sentMessages   Message[]     @relation("SentMessages")
+  friendsInitiated Friend[]    @relation("UserFriends")
+  friendsReceived Friend[]     @relation("FriendToUser")
+  chatParticipant ChatParticipant[]
   badges         Badge[]
   achievements   Achievement[]
   gallery        Gallery[]
   preferences    Preference?
-}
 
+  // Community feed relationships
+  posts          Post[]          // Relation to posts
+  postReactions  PostReaction[]  // Relation to reactions
+  comments       Comment[]       // Relation to comments
+  reports        Report[]        // Relation to reports
+}
 model Account {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   provider    String
@@ -33,16 +44,53 @@ model Account {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Friend {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  friendId  String   @db.ObjectId
+  status    String   // "pending", "accepted", "blocked"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendToUser", fields: [friendId], references: [id], onDelete: Cascade)
 
-model Message {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  content     String
-  createdAt   DateTime @default(now())
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, friendId])
+  @@index([status])
 }
 
+model Chat {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  type         String    // "direct" or "group"
+  name         String?   // For group chats
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  participants ChatParticipant[]
+  messages     Message[]
+}
 
+model ChatParticipant {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  chatId    String   @db.ObjectId
+  joinedAt  DateTime @default(now())
+  lastRead  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId])
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  senderId  String   @db.ObjectId
+  chatId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  read      Boolean  @default(false)
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
 
 model Badge {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -84,4 +132,51 @@ model Preference {
   privacyLevel    String
   userId          String   @unique @db.ObjectId
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  isPrivate Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  images    String[]  // Array of image URLs
+  userId    String    @db.ObjectId
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions PostReaction[]
+  comments  Comment[]
+  reports   Report[]
+}
+
+model PostReaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String   // emoji type (🍁, 🔥, 😎, 🤯)
+  postId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId, type])
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  postId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Report {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  reason    String
+  postId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }

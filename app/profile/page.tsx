@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import UserProgress from '@/app/components/UserProgress'
-import ToleranceBreak from '@/app/components/ToleranceBreak'
-import HealthyLiving from '@/app/components/HealthyLiving'
-import type { StonerBadge, UserAchievement, UserGallery, UserPreference } from '@/app/types/profile'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useToast } from '../contexts/ToastContext'
+import UserProgress from '../components/UserProgress'
+import ToleranceBreak from '../components/ToleranceBreak'
+import HealthyLiving from '../components/HealthyLiving'
+import type { StonerBadge, UserAchievement, UserGallery, UserPreference } from '../types/profile'
 
 const consumptionBadges: StonerBadge[] = [
   { id: '1', name: 'Bong Master', icon: '🌊', description: 'Prefers water filtration', category: 'consumption' },
@@ -20,7 +22,6 @@ const themes = [
   { name: 'Green Dream', class: 'bg-green-100 dark:bg-green-900' },
 ]
 
-// Replaced icon imports with simple strings for now
 const moods = [
   { name: 'Chill', icon: '☀️' },
   { name: 'Sleepy', icon: '🌙' },
@@ -49,7 +50,10 @@ const achievements: UserAchievement[] = [
 ]
 
 export default function Profile() {
+  const { data: session } = useSession()
+  const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState({
     name: 'CannabisEnthusiast420',
     avatar: '/placeholder.svg',
@@ -72,17 +76,74 @@ export default function Profile() {
   const [selectedBadges, setSelectedBadges] = useState<StonerBadge[]>(profile.badges)
   const [tempMood, setTempMood] = useState<typeof moods[0] | null>(null)
 
-  const handleEdit = () => {
-    setEditing(!editing)
+  useEffect(() => {
+    if (session?.user) {
+      fetchProfile()
+    }
+  }, [session])
+
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch('/api/profile')
+      if (!response.ok) throw new Error('Failed to fetch profile')
+      
+      const data = await response.json()
+      if (data) {
+        setProfile(prev => ({
+          ...prev,
+          ...data,
+          preferences: data.preferences || prev.preferences
+        }))
+        setSelectedBadges(data.badges || [])
+      }
+    } catch (error) {
+      showToast('Failed to load profile', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleSave = () => {
-    setEditing(false)
-    setProfile(prev => ({
-      ...prev,
-      badges: selectedBadges
-    }))
-    console.log('Saving profile:', profile)
+  const handleEdit = () => {
+    setEditing(!editing)
+    if (!editing) {
+      // Reset changes if canceling
+      fetchProfile()
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      const dataToSend = {
+        name: profile.name,
+        bio: profile.bio,
+        preferences: profile.preferences,
+        badges: selectedBadges.map(badge => badge.id)
+      }
+
+      console.log('Saving profile data:', dataToSend)
+
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend)
+      })
+
+      if (!response.ok) throw new Error('Failed to update profile')
+
+      const updatedData = await response.json()
+      setProfile(prev => ({
+        ...prev,
+        ...updatedData,
+        preferences: updatedData.preferences || prev.preferences
+      }))
+      setEditing(false)
+      showToast('Profile updated successfully', 'success')
+    } catch (error) {
+      showToast('Failed to update profile', 'error')
+      console.error('Save error:', error)
+    }
   }
 
   const handleBadgeToggle = (badge: StonerBadge) => {
@@ -91,6 +152,10 @@ export default function Profile() {
     } else if (selectedBadges.length < 3) {
       setSelectedBadges(prev => [...prev, badge])
     }
+  }
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
 
   return (

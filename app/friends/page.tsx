@@ -1,137 +1,168 @@
+// app/friends/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { User, UserPlus, UserMinus, MessageSquare, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import { useSocket } from '../hooks/useSocket';
+import { useSession } from 'next-auth/react'
+import { useApi } from '../hooks/useApi'
+import { useToast } from '../../hooks/use-toast';
 
 type Friend = {
-  id: number
-  name: string
-  status: 'online' | 'offline'
-}
-
-type FriendRequest = {
-  id: number
-  name: string
+  id: string
+  user: {
+    id: string
+    name: string
+    lastSeen: Date
+  }
+  friend: {
+    id: string
+    name: string
+    lastSeen: Date
+  }
+  status: string
 }
 
 export default function FriendsPage() {
+  const { data: session } = useSession()
+  const socket = useSocket()
+  const { toast } = useToast()
   const [friends, setFriends] = useState<Friend[]>([])
-  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
+  const [friendRequests, setFriendRequests] = useState<Friend[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const { execute } = useApi<Friend[]>()
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        // Simulating API calls
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setFriends([
-          { id: 1, name: 'BlazeRunner', status: 'online' },
-          { id: 2, name: 'ChronicChiller', status: 'offline' },
-          { id: 3, name: 'HerbEnthusiast', status: 'online' },
-        ])
-        setFriendRequests([
-          { id: 4, name: 'GreenThumb420' },
-          { id: 5, name: 'CannaConnoisseur' },
-        ])
-      } catch (err) {
-        setError('Failed to load friends and requests. Please try again.')
-      } finally {
-        setIsLoading(false)
+    if (session?.user) {
+      fetchFriends()
+      
+      if (socket) {
+        socket.on('friend_request', handleNewFriendRequest)
+        socket.on('friend_status', handleFriendStatusChange)
+        
+        return () => {
+          socket.off('friend_request', handleNewFriendRequest)
+          socket.off('friend_status', handleFriendStatusChange)
+        }
       }
     }
-    fetchData()
-  }, [])
+  }, [session, socket])
 
-  const handleAcceptFriend = async (id: number) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const newFriend = friendRequests.find(request => request.id === id)
-      if (newFriend) {
-        setFriends([...friends, { ...newFriend, status: 'online' }])
-        setFriendRequests(friendRequests.filter(request => request.id !== id))
+  const handleNewFriendRequest = (data: Friend) => {
+    setFriendRequests(prev => [...prev, data])
+    toast({
+      title: 'New Friend Request',
+      description: `${data.user.name} sent you a friend request`
+    })
+  }
+
+  const handleFriendStatusChange = (data: { userId: string; status: string }) => {
+    setFriends(prev => prev.map(friend => {
+      if (friend.friend.id === data.userId || friend.user.id === data.userId) {
+        return { ...friend, status: data.status }
       }
-    } catch (err) {
-      setError('Failed to accept friend request. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+      return friend
+    }))
   }
 
-  const handleRejectFriend = async (id: number) => {
-    setIsLoading(true)
-    setError(null)
+  const fetchFriends = async () => {
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setFriendRequests(friendRequests.filter(request => request.id !== id))
-    } catch (err) {
-      setError('Failed to reject friend request. Please try again.')
-    } finally {
+      const response = await execute(fetch('/api/friends').then(res => res.json()))
+      const allFriends = response || []
+      setFriends(allFriends.filter(f => f.status === 'accepted'))
+      setFriendRequests(allFriends.filter(f => f.status === 'pending'))
+      setIsLoading(false)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load friends',
+        variant: 'destructive'
+      })
       setIsLoading(false)
     }
   }
 
-  const handleUnfriend = async (id: number) => {
-    setIsLoading(true)
-    setError(null)
+  const handleFriendAction = async (friendId: string, action: string) => {
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setFriends(friends.filter(friend => friend.id !== id))
-    } catch (err) {
-      setError('Failed to unfriend. Please try again.')
-    } finally {
-      setIsLoading(false)
+      await execute(fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ friendId, action })
+      }).then(res => res.json()))
+
+      if (action === 'unfriend' || action === 'reject') {
+        setFriends(prev => prev.filter(f => 
+          f.friend.id !== friendId && f.user.id !== friendId
+        ))
+        setFriendRequests(prev => prev.filter(f => 
+          f.friend.id !== friendId && f.user.id !== friendId
+        ))
+      } else if (action === 'accept') {
+        setFriendRequests(prev => prev.filter(f => 
+          f.friend.id !== friendId && f.user.id !== friendId
+        ))
+        fetchFriends() // Refresh the friends list
+      }
+
+      toast({
+        title: 'Success',
+        description: `Friend ${action} successful`
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${action} friend`,
+        variant: 'destructive'
+      })
     }
   }
 
-  const handleBlock = async (id: number) => {
-    setIsLoading(true)
-    setError(null)
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setFriends(friends.filter(friend => friend.id !== id))
-    } catch (err) {
-      setError('Failed to block user. Please try again.')
-    } finally {
-      setIsLoading(false)
+      const response = await execute(fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`).then(res => res.json()))
+      // Handle search results
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to search users',
+        variant: 'destructive'
+      })
     }
   }
 
-  const handleReport = async (id: number) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      alert(`User reported. We'll review this case.`)
-    } catch (err) {
-      setError('Failed to report user. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (isLoading && friends.length === 0 && friendRequests.length === 0) {
+  if (isLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
-  }
-
-  if (error && friends.length === 0 && friendRequests.length === 0) {
-    return <div className="text-destructive text-center">{error}</div>
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Friends</h1>
       
+      {/* Search Users */}
+      <div className="mb-8">
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search users..."
+            className="flex-grow p-2 rounded-md border border-border"
+          />
+          <button
+            type="submit"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
+          >
+            Search
+          </button>
+        </form>
+      </div>
+      
+      {/* Friend Requests */}
       <div className="mb-8 bg-card text-card-foreground rounded-lg shadow-lg p-6">
         <h2 className="text-2xl font-semibold mb-4">Friend Requests</h2>
         {friendRequests.length === 0 ? (
@@ -142,20 +173,18 @@ export default function FriendsPage() {
               <li key={request.id} className="flex items-center justify-between bg-secondary p-4 rounded-lg">
                 <div className="flex items-center">
                   <User className="mr-2" />
-                  <span>{request.name}</span>
+                  <span>{request.user.id === session?.user?.id ? request.friend.name : request.user.name}</span>
                 </div>
                 <div>
                   <button 
-                    onClick={() => handleAcceptFriend(request.id)} 
+                    onClick={() => handleFriendAction(request.friend.id, 'accept')} 
                     className="bg-primary text-primary-foreground px-3 py-1 rounded mr-2"
-                    disabled={isLoading}
                   >
                     Accept
                   </button>
                   <button 
-                    onClick={() => handleRejectFriend(request.id)} 
-                    className="bg-destructive text-destructive-foreground px-3 py-1 rounded hover:bg-destructive/90"
-                    disabled={isLoading}
+                    onClick={() => handleFriendAction(request.friend.id, 'reject')} 
+                    className="bg-destructive text-destructive-foreground px-3 py-1 rounded"
                   >
                     Reject
                   </button>
@@ -166,51 +195,58 @@ export default function FriendsPage() {
         )}
       </div>
       
+      {/* Friends List */}
       <div className="mb-8 bg-card text-card-foreground rounded-lg shadow-lg p-6">
         <h2 className="text-2xl font-semibold mb-4">Your Friends</h2>
-        <ul className="space-y-4">
-          {friends.map(friend => (
-            <li key={friend.id} className="flex items-center justify-between bg-secondary p-4 rounded-lg">
-              <div className="flex items-center">
-                <User className="mr-2" />
-                <span>{friend.name}</span>
-                <span className={`ml-2 px-2 py-1 rounded text-xs ${friend.status === 'online' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-800'}`}>
-                  {friend.status}
-                </span>
-              </div>
-              <div>
-                <Link href={`/messages?friend=${friend.id}`} className="text-blue-500 hover:text-blue-700 mr-2">
-                  <MessageSquare size={20} />
-                </Link>
-                <button 
-                  onClick={() => handleUnfriend(friend.id)} 
-                  className="text-destructive hover:text-destructive/90 mr-2"
-                  disabled={isLoading}
-                >
-                  <UserMinus size={20} />
-                </button>
-                <button 
-                  onClick={() => handleBlock(friend.id)} 
-                  className="text-muted-foreground hover:text-foreground mr-2"
-                  disabled={isLoading}
-                >
-                  Block
-                </button>
-                <button 
-                  onClick={() => handleReport(friend.id)} 
-                  className="text-yellow-500 hover:text-yellow-600"
-                  disabled={isLoading}
-                >
-                  <AlertTriangle size={20} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {friends.length === 0 ? (
+          <p>No friends yet. Use the search above to find friends!</p>
+        ) : (
+          <ul className="space-y-4">
+            {friends.map(friend => {
+              const friendData = friend.user.id === session?.user?.id ? friend.friend : friend.user
+              const isOnline = new Date(friendData.lastSeen).getTime() > Date.now() - 5 * 60 * 1000 // 5 minutes threshold
+              
+              return (
+                <li key={friend.id} className="flex items-center justify-between bg-secondary p-4 rounded-lg">
+                  <div className="flex items-center">
+                    <User className="mr-2" />
+                    <span>{friendData.name}</span>
+                    <span className={`ml-2 px-2 py-1 rounded text-xs ${isOnline ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-800'}`}>
+                      {isOnline ? 'online' : 'offline'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href={`/messages?friendId=${friendData.id}`}
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      <MessageSquare size={20} />
+                    </Link>
+                    <button 
+                      onClick={() => handleFriendAction(friendData.id, 'unfriend')} 
+                      className="text-destructive hover:text-destructive/90"
+                    >
+                      <UserMinus size={20} />
+                    </button>
+                    <button 
+                      onClick={() => handleFriendAction(friendData.id, 'block')} 
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Block
+                    </button>
+                    <button 
+                      onClick={() => handleFriendAction(friendData.id, 'report')} 
+                      className="text-yellow-500 hover:text-yellow-600"
+                    >
+                      <AlertTriangle size={20} />
+                    </button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
-
-      {error && <p className="text-destructive mt-2">{error}</p>}
     </div>
   )
 }
-

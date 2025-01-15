@@ -4,40 +4,66 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, ChevronRight, ChevronLeft } from '../components/providers';
 
 type Message = {
-  id: number
-  sender: string
+  id: string
   content: string
-  timestamp: Date
+  senderId: string
+  sender: User
+  chatId: string
+  chat: Chat
+  createdAt: Date
 }
 
-type Friend = {
-  id: number
-  name: string
+type Chat = {
+  id: string
+  participants: User[]
+  participantIds: string[]
   messages: Message[]
+  createdAt: Date
 }
 
-const initialFriends: Friend[] = [
+type User = {
+  id: string
+  name: string
+}
+
+const initialFriends: User[] = [
   {
-    id: 1,
+    id: '1',
     name: 'BlazeRunner',
-    messages: [
-      { id: 1, sender: 'BlazeRunner', content: 'Hey, how\'s it growing?', timestamp: new Date('2023-06-10T10:00:00') },
-      { id: 2, sender: 'You', content: 'Pretty good! Just trimmed my plants.', timestamp: new Date('2023-06-10T10:05:00') },
-    ]
   },
   {
-    id: 2,
+    id: '2',
     name: 'ChronicChiller',
+  },
+]
+
+const initialChats: Chat[] = [
+  {
+    id: '1',
+    participants: [initialFriends[0], initialFriends[1]],
+    participantIds: ['1', '2'],
     messages: [
-      { id: 1, sender: 'ChronicChiller', content: 'Did you see the new strain at the dispensary?', timestamp: new Date('2023-06-09T15:30:00') },
-      { id: 2, sender: 'You', content: 'Not yet, is it fire?', timestamp: new Date('2023-06-09T15:35:00') },
-    ]
+      { id: '1', senderId: '1', sender: initialFriends[0], content: 'Hey, how\'s it growing?', chatId: '1', chat: {} as Chat, createdAt: new Date('2023-06-10T10:00:00') },
+      { id: '2', senderId: '2', sender: initialFriends[1], content: 'Pretty good! Just trimmed my plants.', chatId: '1', chat: {} as Chat, createdAt: new Date('2023-06-10T10:05:00') },
+    ],
+    createdAt: new Date('2023-06-10T10:00:00')
+  },
+  {
+    id: '2',
+    participants: [initialFriends[1]],
+    participantIds: ['2'],
+    messages: [
+      { id: '1', senderId: '2', sender: initialFriends[1], content: 'Did you see the new strain at the dispensary?', chatId: '2', chat: {} as Chat, createdAt: new Date('2023-06-09T15:30:00') },
+      { id: '2', senderId: '1', sender: initialFriends[0], content: 'Not yet, is it fire?', chatId: '2', chat: {} as Chat, createdAt: new Date('2023-06-09T15:35:00') },
+    ],
+    createdAt: new Date('2023-06-09T15:30:00')
   },
 ]
 
 export default function FriendMessages() {
-  const [friends, setFriends] = useState<Friend[]>(initialFriends)
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
+  const [friends, setFriends] = useState<User[]>(initialFriends)
+  const [chats, setChats] = useState<Chat[]>(initialChats)
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,36 +73,39 @@ export default function FriendMessages() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [selectedFriend])
+  }, [selectedChat])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newMessage.trim() && selectedFriend) {
+    if (newMessage.trim() && selectedChat) {
       setIsLoading(true)
       setError(null)
       try {
         // Simulating an API call
         await new Promise(resolve => setTimeout(resolve, 500))
 
-        const updatedFriends = friends.map(friend => {
-          if (friend.id === selectedFriend.id) {
+        const updatedChats = chats.map(chat => {
+          if (chat.id === selectedChat.id) {
             return {
-              ...friend,
+              ...chat,
               messages: [
-                ...friend.messages,
+                ...chat.messages,
                 {
-                  id: friend.messages.length + 1,
-                  sender: 'You',
+                  id: (chat.messages.length + 1).toString(),
+                  senderId: '1', // Assuming 'You' is the user with id '1'
+                  sender: friends.find(f => f.id === '1')!,
                   content: newMessage.trim(),
-                  timestamp: new Date()
+                  chatId: chat.id,
+                  chat: chat,
+                  createdAt: new Date()
                 }
               ]
             }
           }
-          return friend
+          return chat
         })
-        setFriends(updatedFriends)
-        setSelectedFriend(updatedFriends.find(f => f.id === selectedFriend.id) || null)
+        setChats(updatedChats)
+        setSelectedChat(updatedChats.find(c => c.id === selectedChat.id) || null)
         setNewMessage('')
       } catch (err) {
         setError('Failed to send message. Please try again.')
@@ -94,13 +123,13 @@ export default function FriendMessages() {
           {friends.map(friend => (
             <li
               key={friend.id}
-              className={`cursor-pointer p-2 rounded ${selectedFriend?.id === friend.id ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}
-              onClick={() => setSelectedFriend(friend)}
+              className={`cursor-pointer p-2 rounded ${selectedChat?.participants.some(p => p.id === friend.id) ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}
+              onClick={() => setSelectedChat(chats.find(chat => chat.participants.some(p => p.id === friend.id)) || null)}
             >
               {friend.name}
-              {friend.messages.length > 0 && (
+              {chats.find(chat => chat.participants.some(p => p.id === friend.id))?.messages.length > 0 && (
                 <span className="ml-2 bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full">
-                  {friend.messages.length}
+                  {chats.find(chat => chat.participants.some(p => p.id === friend.id))?.messages.length}
                 </span>
               )}
             </li>
@@ -108,17 +137,17 @@ export default function FriendMessages() {
         </ul>
       </div>
       <div className="w-2/3 pl-4 flex flex-col">
-        {selectedFriend ? (
+        {selectedChat ? (
           <>
-            <h2 className="text-2xl font-semibold mb-4">Chat with {selectedFriend.name}</h2>
+            <h2 className="text-2xl font-semibold mb-4">Chat with {selectedChat.participants.map(p => p.name).join(', ')}</h2>
             <div className="flex-grow overflow-y-auto mb-4">
-              {selectedFriend.messages.map(message => (
-                <div key={message.id} className={`mb-2 ${message.sender === 'You' ? 'text-right' : ''}`}>
-                  <span className={`inline-block rounded px-2 py-1 ${message.sender === 'You' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
-                    <strong>{message.sender}:</strong> {message.content}
+              {selectedChat.messages.map(message => (
+                <div key={message.id} className={`mb-2 ${message.senderId === '1' ? 'text-right' : ''}`}>
+                  <span className={`inline-block rounded px-2 py-1 ${message.senderId === '1' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
+                    <strong>{message.sender.name}:</strong> {message.content}
                   </span>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {message.timestamp.toLocaleString()}
+                    {message.createdAt.toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -146,4 +175,3 @@ export default function FriendMessages() {
     </div>
   )
 }
-

@@ -1,3 +1,6 @@
+// app/hooks/useApi.ts
+'use client'
+
 import { useState, useCallback } from 'react'
 
 interface ApiResponse<T> {
@@ -27,4 +30,3 @@ export function useApi<T>() {
 
   return { ...state, execute }
 }
-

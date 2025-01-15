@@ -10,23 +10,28 @@ const nextConfig = {
     unoptimized: false,
     domains: [], // We'll add domains as needed
   },
-  env:
-  {
+  env: {
     env: {  
       NEXT_PUBLIC_SEB: process.env.NEXT_PUBLIC_SEB, 
       NEXTAUTH_URL: process.env.NEXTAUTH_URL, 
       NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
       DATABASE_URL: process.env.DATABASE_URL,
-
     }
-    
   },
-  // Temporarily disable experimental features to test
-  // experimental: {
-  //   webpackBuildWorker: true,
-  //   parallelServerBuildTraces: true,
-  //   parallelServerCompiles: true,
-  // },
+  experimental: {
+    paths: true,
+  },
+  aliases: {
+    '@lib': './lib',
+  },
+  moduleDirectories: ['node_modules', 'lib'],
+  webpack: (config) => {
+    config.externals.push({
+      'utf-8-validate': 'commonjs utf-8-validate',
+      'bufferutil': 'commonjs bufferutil',
+    })
+    return config
+  },
   async headers() {
     return [
       {
@@ -34,7 +39,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' wss: ws:"
           },
           {
             key: 'X-Frame-Options',
@@ -54,4 +59,4 @@ const nextConfig = {
   }
 }
 
-export default nextConfig
+export default nextConfig;

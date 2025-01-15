@@ -4,14 +4,14 @@ import { AuthOptions } from 'next-auth'
 import { Session } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@auth/prisma-adapter'
-import prisma from '@/lib/prisma'
+import prisma from '../../../../lib/prisma'  // This is correct for app/api/auth/[...nextauth]/route.ts
 
 type User = {
-  id: string
-  email: string
-  name?: string | null
-  hashedPassword?: string
-}
+  id: string;
+  email: string;
+  name?: string | null;
+  hashedPassword?: string;
+};
 
 interface ExtendedSession extends Session {
   user: {

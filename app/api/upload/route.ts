@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dad4c8nxn',
   api_key: process.env.CLOUDINARY_API_KEY || '488984445468973',
@@ -26,11 +27,10 @@ export async function POST(req: Request) {
           {
             folder: 'greenhub',
             resource_type: 'auto',
-            allowed_formats: ['jpg', 'png', 'gif', 'webp'],
           },
           (error, result) => {
             if (error) {
-              console.error('Cloudinary error:', error);
+              console.error('Cloudinary upload error:', error);
               reject(error);
             } else {
               resolve(result);
@@ -46,10 +46,16 @@ export async function POST(req: Request) {
 
     const results = await Promise.all(uploadPromises);
     console.log('Upload successful:', results);
-    return Response.json(results.length === 1 ? results[0] : results);
+
+    return Response.json(
+      results.length === 1 ? results[0] : results
+    );
   } catch (error) {
     console.error('Upload error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(`Upload failed: ${errorMessage}`, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+    return new Response(
+      JSON.stringify({ error: errorMessage }), 
+      { status: 500 }
+    );
   }
 }

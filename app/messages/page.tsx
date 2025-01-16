@@ -1,8 +1,7 @@
 // app/messages/page.tsx
-import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import MessagesComponent from './MessagesComponent'
+import { redirect } from 'next/navigation'
+import { authOptions } from '../api/auth/[...nextauth]/route'
 
 export default async function MessagesPage() {
   const session = await getServerSession(authOptions)

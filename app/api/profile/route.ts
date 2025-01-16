@@ -1,73 +1,28 @@
 // app/api/profile/route.ts
-import { NextResponse } from 'next/server'
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../../app/api/auth/[...nextauth]/route"
-import prisma from '../../../lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]/route'
 
-export const dynamic = 'force-dynamic'
-
-export async function GET() {
+export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return new Response('Unauthorized', { status: 401 })
     }
 
-    const profile = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      },
-      include: {
-        badges: true,
-        achievements: true,
-        gallery: true,
-        preferences: true
-      }
-    })
-
-    return NextResponse.json(profile)
-  } catch (error) {
-    console.error('Profile fetch error:', error)
-    return NextResponse.json({ 
-      error: 'Failed to fetch profile',
-      details: process.env.NODE_ENV === 'development' ? error : undefined 
-    }, { status: 500 })
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const data = await request.json()
-    console.log('Received update data:', data)
-
-    // Get user
-    const user = await prisma.user.findUnique({
+    const data = await req.json()
+    
+    const user = await prisma.user.update({
       where: { email: session.user.email },
-      include: { preferences: true }
+      data: {
+        name: data.name,
+        bio: data.bio,
+        updatedAt: new Date(),
+      },
     })
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Update user and preferences in a transaction
-    const updatedProfile = await prisma.$transaction(async (tx) => {
-      // Update user basic info
-      const updatedUser = await tx.user.update({
-        where: { id: user.id },
-        data: {
-          name: data.name,
-          bio: data.bio,
-        },
-      })
-
-      // Update or create preferences
-      const updatedPreferences = await tx.preference.upsert({
+    // If there are preferences, update or create them
+    if (data.preferences) {
+      await prisma.preference.upsert({
         where: { userId: user.id },
         create: {
           userId: user.id,
@@ -75,44 +30,11 @@ export async function PUT(request: Request) {
         },
         update: data.preferences,
       })
+    }
 
-      // Update badges if provided
-      if (data.badges) {
-        await tx.badge.deleteMany({
-          where: { userId: user.id }
-        })
-
-        if (data.badges.length > 0) {
-          await tx.badge.createMany({
-            data: data.badges.map((badgeId: string) => ({
-              userId: user.id,
-              name: consumptionBadges.find(b => b.id === badgeId)?.name || '',
-              icon: consumptionBadges.find(b => b.id === badgeId)?.icon || '',
-              description: consumptionBadges.find(b => b.id === badgeId)?.description || '',
-              category: consumptionBadges.find(b => b.id === badgeId)?.category || '',
-            }))
-          })
-        }
-      }
-
-      // Return updated user with all relations
-      return tx.user.findUnique({
-        where: { id: user.id },
-        include: {
-          badges: true,
-          achievements: true,
-          gallery: true,
-          preferences: true
-        }
-      })
-    })
-
-    return NextResponse.json(updatedProfile)
+    return Response.json(user)
   } catch (error) {
     console.error('Profile update error:', error)
-    return NextResponse.json({ 
-      error: 'Failed to update profile',
-      details: process.env.NODE_ENV === 'development' ? error : undefined 
-    }, { status: 500 })
+    return new Response('Internal Server Error', { status: 500 })
   }
 }

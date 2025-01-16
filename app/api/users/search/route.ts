@@ -6,28 +6,21 @@ import { authOptions } from '../../auth/[...nextauth]/route'
 
 export const dynamic = 'force-dynamic'
 
+// app/api/users/search/route.ts
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { searchParams } = new URL(req.url)
     const query = searchParams.get('q')
+    console.log('Search query:', query)
 
-    if (!query) {
-      return NextResponse.json({ error: 'Search query required' }, { status: 400 })
-    }
-
-    const results = await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       where: {
         OR: [
           { name: { contains: query, mode: 'insensitive' } },
           { email: { contains: query, mode: 'insensitive' } },
         ],
         NOT: {
-          email: session.user.email, // Exclude current user
+          email: session?.user?.email, // Don't show current user
         },
       },
       select: {
@@ -38,10 +31,11 @@ export async function GET(req: Request) {
       },
       take: 10,
     })
-
-    return NextResponse.json(results)
+    
+    console.log('Found users:', users.length)
+    return Response.json(users)
   } catch (error) {
     console.error('Search error:', error)
-    return NextResponse.json({ error: 'Search failed' }, { status: 500 })
+    return new Response('Internal Server Error', { status: 500 })
   }
 }

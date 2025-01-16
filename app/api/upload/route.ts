@@ -1,54 +1,52 @@
-// app/api/upload/route.ts
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { v2 as cloudinary } from 'cloudinary';
 
-export async function POST(request: Request) {
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const data = await request.formData()
-    const file: File | null = data.get('file') as unknown as File
-
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+    
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+      return new Response('No file uploaded', { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    // Ensure uploads directory exists
-    const uploadsDir = join(process.cwd(), 'public/uploads')
-    try {
-      await mkdir(uploadsDir, { recursive: true })
-    } catch (error) {
-      // Ignore if directory already exists
-    }
+    const uploadPromise = new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'greenhub',
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
 
-    // Create unique filename
-    const uniqueFilename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`
-    const path = join(uploadsDir, uniqueFilename)
-    
-    await writeFile(path, buffer)
-    
-    return NextResponse.json({ 
-      url: `/uploads/${uniqueFilename}`,
-      success: true 
-    })
-  } catch (error: any) {
-    console.error('Upload error:', error)
-    return NextResponse.json({ 
-      error: 'Upload failed',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
-    }, { status: 500 })
+      // Write the buffer to the upload stream
+      const cloudinaryBuffer = Buffer.from(buffer);
+      uploadStream.end(cloudinaryBuffer);
+    });
+
+    const result = await uploadPromise;
+
+    return Response.json(result);
+  } catch (error) {
+    console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(`Upload failed: ${errorMessage}`, { status: 500 });
   }
 }
 
-export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
-}
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

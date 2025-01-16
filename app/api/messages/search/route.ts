@@ -1,15 +1,15 @@
 // app/api/messages/search/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'  // Fixed import
 import prisma from '../../../../lib/prisma'
-import { authOptions } from '../../../../app/api/auth/[...nextauth]/route'
+import { authOptions } from '../../auth/[...nextauth]/route'  // Fixed path
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {  // Changed from id to email since that's what we use in auth
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
@@ -18,6 +18,14 @@ export async function GET(req: Request) {
 
     if (!query) {
       return new NextResponse('Search query is required', { status: 400 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    })
+
+    if (!user) {
+      return new NextResponse('User not found', { status: 404 })
     }
 
     const messages = await prisma.message.findMany({
@@ -33,7 +41,7 @@ export async function GET(req: Request) {
             chat: {
               participants: {
                 some: {
-                  userId: session.user.id
+                  userId: user.id
                 }
               }
             }

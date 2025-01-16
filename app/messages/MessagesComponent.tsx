@@ -43,7 +43,7 @@ export default function MessagesComponent() {
   const socket = useSocket()
   const { showToast } = useToast()
   const searchParams = useSearchParams()
-  const { execute } = useApi<Chat[]>()
+  const { execute } = useApi<Chat>()
   
   const [chats, setChats] = useState<Chat[]>([])
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
@@ -67,15 +67,15 @@ export default function MessagesComponent() {
     if (session?.user) {
       fetchChats()
       
-      const friendId = searchParams.get('friendId')
+      const friendId = searchParams?.get('friendId')
       if (friendId) {
         initiateChatWithFriend(friendId)
       }
     }
-  }, [session])
+  }, [session, searchParams])
 
   useEffect(() => {
-    if (socket && selectedChat) {
+    if (socket && selectedChat?.id) {
       socket.emit('join-chat', selectedChat.id)
       
       socket.on('message', handleNewMessage)
@@ -92,14 +92,17 @@ export default function MessagesComponent() {
   }, [socket, selectedChat])
 
   useEffect(() => {
-    if (messagesEndRef.current && selectedChat?.messages.length) {
+    if (messagesEndRef.current && selectedChat?.messages?.length) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [selectedChat?.messages])
 
   const fetchChats = async () => {
     try {
-      const response = await execute(fetch('/api/messages').then(res => res.json()))
+      const response = await execute(async () => {
+        const res = await fetch('/api/messages')
+        return res.json()
+      })
       setChats(response || [])
       setIsLoading(false)
     } catch (error) {
@@ -153,15 +156,19 @@ export default function MessagesComponent() {
 
   const initiateChatWithFriend = async (friendId: string) => {
     try {
-      const response = await execute(
-        fetch('/api/messages', {
+      const response = await execute(async () => {
+        const res = await fetch('/api/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ recipientId: friendId })
-        }).then(res => res.json())
-      )
-      setSelectedChat(response)
-      setChats(prev => [response, ...prev])
+        })
+        return res.json()
+      })
+
+      if (response) {
+        setSelectedChat(response)
+        setChats(prev => [response, ...prev])
+      }
     } catch (error) {
       showToast('Failed to start chat', 'error')
     }
@@ -169,7 +176,7 @@ export default function MessagesComponent() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !selectedChat || !socket) return
+    if (!newMessage.trim() || !selectedChat?.id || !socket || !session?.user?.id) return
 
     try {
       socket.emit('message', {
@@ -182,7 +189,7 @@ export default function MessagesComponent() {
         clearTimeout(typingTimeoutRef.current)
         socket.emit('stop-typing', {
           chatId: selectedChat.id,
-          userId: session?.user?.id
+          userId: session.user.id
         })
       }
     } catch (error) {
@@ -191,11 +198,11 @@ export default function MessagesComponent() {
   }
 
   const handleTyping = () => {
-    if (!socket || !selectedChat) return
+    if (!socket || !selectedChat?.id || !session?.user?.id) return
 
     socket.emit('typing', {
       chatId: selectedChat.id,
-      userId: session?.user?.id
+      userId: session.user.id
     })
 
     if (typingTimeoutRef.current) {
@@ -205,7 +212,7 @@ export default function MessagesComponent() {
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('stop-typing', {
         chatId: selectedChat.id,
-        userId: session?.user?.id
+        userId: session.user.id
       })
     }, 2000)
   }

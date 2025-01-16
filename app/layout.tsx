@@ -10,10 +10,17 @@ import 'leaflet/dist/leaflet.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
+// Separate viewport configuration
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
+// Clean metadata without viewport
 export const metadata = {
   title: 'Green Hub',
   description: 'A professional and privacy-focused community for cannabis enthusiasts and businesses',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   icons: {
     icon: '/favicon.ico',
   },
@@ -24,7 +31,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Remove console.warn(process.env) as it's not safe to expose environment variables
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -34,8 +40,6 @@ export default function RootLayout({
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="theme-color" content="#000000" />
       </head>
       <body className={`${inter.className} text-foreground bg-background antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>

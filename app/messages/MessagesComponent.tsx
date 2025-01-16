@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Send, ChevronLeft } from 'lucide-react'
 import { useSocket } from '../hooks/useSocket'
 import { useSession } from 'next-auth/react'
+import { Session } from 'next-auth'
 import { useApi } from '../hooks/useApi'
 import { useToast } from '../contexts/ToastContext'
 import { useSearchParams } from 'next/navigation'
@@ -38,8 +39,17 @@ type Chat = {
   updatedAt: Date
 }
 
+interface ExtendedSession extends Session {
+  user: {
+    id: string
+    name?: string | null
+    email?: string | null
+    image?: string | null
+  }
+}
+
 export default function MessagesComponent() {
-  const { data: session } = useSession()
+  const { data: session } = useSession() as { data: ExtendedSession | null }
   const socket = useSocket()
   const { showToast } = useToast()
   const searchParams = useSearchParams()
@@ -156,15 +166,21 @@ export default function MessagesComponent() {
 
   const initiateChatWithFriend = async (friendId: string) => {
     try {
-      const response = await execute(async () => {
+      const response = await execute(async (): Promise<Chat> => {
         const res = await fetch('/api/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ recipientId: friendId })
         })
-        return res.json()
+  
+        if (!res.ok) {
+          throw new Error('Failed to initiate chat')
+        }
+  
+        const data = await res.json()
+        return data.chat as Chat
       })
-
+  
       if (response) {
         setSelectedChat(response)
         setChats(prev => [response, ...prev])

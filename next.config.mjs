@@ -8,30 +8,28 @@ const nextConfig = {
   },
   images: {
     unoptimized: false,
-    domains: [], // We'll add domains as needed
+    domains: ['greenhub.sletchersystems.com'], 
   },
-  env: {
-    env: {  
-      NEXT_PUBLIC_SEB: process.env.NEXT_PUBLIC_SEB, 
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL, 
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-      DATABASE_URL: process.env.DATABASE_URL,
-    }
+  env: {  
+    NEXT_PUBLIC_SEB: process.env.NEXT_PUBLIC_SEB, 
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL, 
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    DATABASE_URL: process.env.DATABASE_URL,
   },
-  experimental: {
-    paths: true,
-  },
-  aliases: {
-    '@lib': './lib',
-  },
-  moduleDirectories: ['node_modules', 'lib'],
   webpack: (config) => {
+    config.resolve.modules.push('node_modules', 'lib')
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@lib': './lib',
+    }
+    
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',
     })
     return config
   },
+  // Removed the problematic rewrites section and replaced with proper alias configuration
   async headers() {
     return [
       {

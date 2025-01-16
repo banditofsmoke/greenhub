@@ -14,6 +14,11 @@ export async function POST(req: Request) {
 
     const { content, isPrivate, images } = await req.json()
     
+    // Add validation for images
+    const validatedImages = Array.isArray(images) ? images.filter(img => 
+      typeof img === 'string' && img.startsWith('https://res.cloudinary.com/')
+    ) : [];
+    
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
@@ -22,11 +27,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Add logging to debug image handling
+    console.log('Creating post with images:', validatedImages);
+
     const post = await prisma.post.create({
       data: {
         content,
         isPrivate,
-        images: images || [],
+        images: validatedImages, // Use validated images
         userId: user.id,
       },
       include: {
@@ -49,6 +57,8 @@ export async function POST(req: Request) {
     }, { status: 500 })
   }
 }
+
+// Keep the rest of your GET function exactly as is
 
 export async function GET() {
   try {

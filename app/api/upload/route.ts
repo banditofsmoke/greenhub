@@ -1,14 +1,13 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dad4c8nxn',
+  api_key: process.env.CLOUDINARY_API_KEY || '488984445468973',
+  api_secret: process.env.CLOUDINARY_API_SECRET || '3F1hb6zgO8SLBlrgb0hpU-4fOOg'
 });
 
-export const runtime = 'nodejs'; // Add this line
-export const dynamic = 'force-dynamic'; // Add this line
-// Remove the old config export
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
@@ -27,12 +26,15 @@ export async function POST(req: Request) {
           {
             folder: 'greenhub',
             resource_type: 'auto',
-            allowed_formats: ['jpg', 'png', 'gif', 'webp'], // Add allowed formats
-            max_bytes: 10485760, // 10MB limit
+            allowed_formats: ['jpg', 'png', 'gif', 'webp'],
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.error('Cloudinary error:', error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
           }
         );
 
@@ -43,6 +45,7 @@ export async function POST(req: Request) {
     }
 
     const results = await Promise.all(uploadPromises);
+    console.log('Upload successful:', results);
     return Response.json(results.length === 1 ? results[0] : results);
   } catch (error) {
     console.error('Upload error:', error);

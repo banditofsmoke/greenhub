@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, ThumbsUp, MessageSquare, Flag, Globe, Lock, Smile, Zap, ImageIcon, AlertTriangle } from 'lucide-react'
+import { User, ThumbsUp, MessageSquare, Flag, Globe, Lock, Smile, Zap } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext'
 import { useSession } from 'next-auth/react'
+import UploadButton from '../components/UploadButton'
 
 const reactions = [
   { emoji: '🍁', name: 'Leaf' },
@@ -42,7 +43,7 @@ export default function CommunityFeed() {
   const [newPost, setNewPost] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [highThought, setHighThought] = useState('')
-  const [images, setImages] = useState<File[]>([])
+  const [images, setImages] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { showToast } = useToast()
 
@@ -64,29 +65,31 @@ export default function CommunityFeed() {
     }
   }
 
+  const handleUploadComplete = (urls: string[]) => {
+    setImages(prev => {
+      // Check if we'd exceed the limit
+      if (prev.length + urls.length > 3) {
+        showToast('Maximum 3 images allowed', 'error')
+        return prev
+      }
+      return [...prev, ...urls]
+    })
+    showToast('Images uploaded successfully!', 'success')
+  }
+
+  const handleUploadError = (error: Error) => {
+    showToast(error.message, 'error')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newPost.trim()) return
+    if (!newPost.trim() && !images.length) return
     if (!session) {
       showToast('Please sign in to create a post', 'error')
       return
     }
 
     try {
-      // Upload images first if any
-      const imageUrls = await Promise.all(
-        images.map(async (image) => {
-          const formData = new FormData()
-          formData.append('file', image)
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-          })
-          const data = await response.json()
-          return data.url
-        })
-      )
-
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -95,7 +98,7 @@ export default function CommunityFeed() {
         body: JSON.stringify({
           content: newPost,
           isPrivate,
-          images: imageUrls,
+          images,
         }),
       })
 
@@ -157,17 +160,8 @@ export default function CommunityFeed() {
     }
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    if (files.length + images.length > 3) {
-      showToast('You can only upload up to 3 images per post', 'error')
-      return
-    }
-    setImages(prevImages => [...prevImages, ...files])
-  }
-
   const removeImage = (index: number) => {
-    setImages(prevImages => prevImages.filter((_, i) => i !== index))
+    setImages(images.filter((_, i) => i !== index))
   }
 
   const generateHighThought = () => {
@@ -252,44 +246,28 @@ export default function CommunityFeed() {
             />
             Make this post private
           </label>
-          <div>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageUpload}
-              className="hidden"
-              id="image-upload"
-              disabled={!session}
-            />
-            <label 
-              htmlFor="image-upload" 
-              className={`cursor-pointer px-4 py-2 rounded-md transition-colors ${
-                session 
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white' 
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
-            >
-              <ImageIcon className="inline-block mr-2" size={16} />
-              Add Images ({images.length}/3)
-            </label>
-          </div>
+          <UploadButton
+            onUploadComplete={handleUploadComplete}
+            onUploadError={handleUploadError}
+            multiple={images.length < 3}
+            className={!session ? 'opacity-50 pointer-events-none' : ''}
+          />
         </div>
         {images.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
-            {images.map((image, index) => (
-              <div key={index} className="relative">
+            {images.map((url, index) => (
+              <div key={url} className="relative">
                 <img 
-                  src={URL.createObjectURL(image)} 
+                  src={url}
                   alt="Upload preview" 
                   className="w-20 h-20 object-cover rounded"
                 />
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
                 >
-                  <AlertTriangle size={12} />
+                  ×
                 </button>
               </div>
             ))}
@@ -302,7 +280,7 @@ export default function CommunityFeed() {
               ? 'bg-green-600 hover:bg-green-700 text-white' 
               : 'bg-gray-400 text-gray-200 cursor-not-allowed'
           }`}
-          disabled={!session}
+          disabled={!session || (!newPost.trim() && !images.length)}
         >
           Post
         </button>
@@ -343,7 +321,7 @@ export default function CommunityFeed() {
             
             <p className="mb-4">{post.content}</p>
             
-            {post.images.length > 0 && (
+            {post.images?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.images.map((image, index) => (
                   <img 
